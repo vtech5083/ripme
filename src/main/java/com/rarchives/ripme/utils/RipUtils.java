@@ -229,42 +229,64 @@ public class RipUtils {
         if (!dir.startsWith("imgur_")) {
             return null;
         }
+
+        // Remove any trailing text after a space
         if (dir.contains(" ")) {
             dir = dir.substring(0, dir.indexOf(" "));
         }
+
         List<String> fields = Arrays.asList(dir.split("_"));
+        if (fields.size() < 2) {
+            return null;
+        }
+
         String album = fields.get(1);
         String url = "http://";
-        if ((fields.contains("top") || fields.contains("new"))
-                && (fields.contains("year") || fields.contains("month") || fields.contains("week") || fields.contains("all"))) {
-            // Subreddit
-            fields.remove(0); // "imgur"
-            String sub = "";
-            while (fields.size() > 2) {
-                if (!sub.equals("")) {
-                    sub += "_";
-                }
-                sub = fields.remove(0); // Subreddit that may contain "_"
-            }
-            url += "imgur.com/r/" + sub + "/";
-            url += fields.remove(0) + "/";
-            url += fields.remove(0);
-        }
-        else if (album.contains("-")) {
-            // Series of images
-            url += "imgur.com/" + album.replaceAll("-", ",");
-        }
-        else if (album.length() == 5 || album.length() == 6) {
-            // Album
+
+        if (isSubreddit(fields)) {
+            url += buildSubredditUrl(fields);
+        } else if (album.contains("-")) {
+            url += "imgur.com/" + album.replace("-", ",");
+        } else if (isAlbum(album)) {
             url += "imgur.com/a/" + album;
+        } else {
+            url += buildUserAccountUrl(album, fields);
         }
-        else {
-            // User account
-            url += album + ".imgur.com/";
-            if (fields.size() > 2) {
-                url += fields.get(2);
-            }
-        }
+
         return url;
     }
+
+    private static boolean isSubreddit(List<String> fields) {
+        return fields.contains("top") || fields.contains("new")
+                && (fields.contains("year") || fields.contains("month")
+                || fields.contains("week") || fields.contains("all"));
+    }
+
+    private static String buildSubredditUrl(List<String> fields) {
+        fields = new ArrayList<String>(fields);
+        fields.remove(0); // remove "imgur"
+
+        StringBuilder subreddit = new StringBuilder();
+        while (fields.size() > 2) {
+            if (subreddit.length() > 0) {
+                subreddit.append("_");
+            }
+            subreddit.append(fields.remove(0));
+        }
+
+        return "imgur.com/r/" + subreddit + "/" + fields.remove(0) + "/" + fields.remove(0);
+    }
+
+    private static boolean isAlbum(String album) {
+        return album.length() == 5 || album.length() == 6;
+    }
+
+    private static String buildUserAccountUrl(String album, List<String> fields) {
+        StringBuilder url = new StringBuilder(album + ".imgur.com/");
+        if (fields.size() > 2) {
+            url.append(fields.get(2));
+        }
+        return url.toString();
+    }
+
 }

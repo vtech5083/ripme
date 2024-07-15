@@ -47,8 +47,8 @@ public abstract class AlbumRipper extends AbstractRipper {
         }
         if (!allowDuplicates()
                 && ( itemsPending.containsKey(url)
-                  || itemsCompleted.containsKey(url)
-                  || itemsErrored.containsKey(url) )) {
+                || itemsCompleted.containsKey(url)
+                || itemsErrored.containsKey(url) )) {
             // Item is already downloaded/downloading, skip it.
             logger.info("[!] Skipping " + url + " -- already attempted: " + Utils.removeCWD(saveAs));
             return false;
@@ -204,10 +204,10 @@ public abstract class AlbumRipper extends AbstractRipper {
     public String getStatusText() {
         StringBuilder sb = new StringBuilder();
         sb.append(getCompletionPercentage())
-          .append("% ")
-          .append("- Pending: "  ).append(itemsPending.size())
-          .append(", Completed: ").append(itemsCompleted.size())
-          .append(", Errored: "  ).append(itemsErrored.size());
+                .append("% ")
+                .append("- Pending: "  ).append(itemsPending.size())
+                .append(", Completed: ").append(itemsCompleted.size())
+                .append(", Errored: "  ).append(itemsErrored.size());
         return sb.toString();
     }
 }

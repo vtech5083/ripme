@@ -22,8 +22,8 @@ import com.rarchives.ripme.ui.RipStatusMessage.STATUS;
 import com.rarchives.ripme.utils.Utils;
 
 public abstract class AbstractRipper
-                extends Observable
-                implements RipperInterface, Runnable {
+        extends Observable
+        implements RipperInterface, Runnable {
 
     protected static final Logger logger = Logger.getLogger(AbstractRipper.class);
 
@@ -133,10 +133,10 @@ public abstract class AbstractRipper
             }
             saveFileAs = new File(
                     workingDir.getCanonicalPath()
-                    + subdirectory
-                    + File.separator
-                    + prefix
-                    + saveAs);
+                            + subdirectory
+                            + File.separator
+                            + prefix
+                            + saveAs);
         } catch (IOException e) {
             logger.error("[!] Error creating save file path for URL '" + url + "':", e);
             return false;
