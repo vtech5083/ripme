@@ -205,4 +205,3 @@ public class DownloadFileThread extends Thread {
     }
 }
 
-}
