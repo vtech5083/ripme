@@ -1,7 +1,9 @@
 package com.rarchives.ripme.tst.ripper.rippers;
 
-import java.io.IOException;
+
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
@@ -34,18 +36,29 @@ public class BasicRippersTest extends RippersTest {
             new RipperTest(XhamsterRipper.class,
                     "http://xhamster.com/photos/gallery/1462237/alyssa_gadson.html")
     );
-
     public void testRippers() {
         for (RipperTest ripperTest : RIPPER_TESTS) {
-            try {
-                System.out.println("Testing " + ripperTest.ripperClass.getSimpleName());
-                for (String url : ripperTest.urls) {
-                    AbstractRipper ripper = ripperTest.ripperClass.getConstructor(URL.class).newInstance(new URL(url));
+            System.out.println("Testing " + ripperTest.ripperClass.getSimpleName());
+            for (String url : ripperTest.urls) {
+                try {
+                    AbstractRipper ripper = createRipper(ripperTest.ripperClass, url);
                     testRipper(ripper);
+                } catch (Exception e) {
+                    handleRipperTestException(e, ripperTest.ripperClass, url);
                 }
-            } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException | IOException e) {
-                throw new RuntimeException("Failed to test ripper: " + ripperTest.ripperClass.getSimpleName(), e);
             }
         }
+    }   
+
+    private AbstractRipper createRipper(Class<? extends AbstractRipper> ripperClass, String url) 
+        throws NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException, MalformedURLException {
+        Constructor<? extends AbstractRipper> constructor = ripperClass.getConstructor(URL.class);
+        return constructor.newInstance(new URL(url));
+    }
+
+    private void handleRipperTestException(Exception e, Class<?> ripperClass, String url) {
+        String errorMessage = String.format("Failed to test ripper %s with URL %s", ripperClass.getSimpleName(), url);
+        logger.error(errorMessage, e);
+        fail(errorMessage + ": " + e.getMessage());
     }
 }

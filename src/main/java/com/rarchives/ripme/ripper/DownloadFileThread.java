@@ -10,15 +10,8 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
-
-import javax.net.ssl.HttpsURLConnection;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
-import org.jsoup.HttpStatusException;
-
-import com.rarchives.ripme.ui.RipStatusMessage.STATUS;
 import com.rarchives.ripme.utils.Utils;
 
 /**
@@ -144,10 +137,19 @@ public class DownloadFileThread extends Thread {
     }
 
     private void setCookies(HttpURLConnection huc) {
-        String cookie = cookies.entrySet().stream()
-                .map(e -> e.getKey() + "=" + e.getValue())
-                .collect(Collectors.joining("; "));
-        huc.setRequestProperty("Cookie", cookie);
+        StringBuilder cookieBuilder = new StringBuilder();
+        boolean first = true;
+        for (Map.Entry<String, String> entry : cookies.entrySet()) {
+            if (!first) {
+                cookieBuilder.append("; ");
+            }
+            cookieBuilder.append(entry.getKey()).append("=").append(entry.getValue());
+            first = false;
+        }
+        String cookie = cookieBuilder.toString();
+        if (!cookie.isEmpty()) {
+            huc.setRequestProperty("Cookie", cookie);
+        }
     }
 
     private boolean isRedirect(int statusCode) {
@@ -188,9 +190,27 @@ public class DownloadFileThread extends Thread {
     }
 
     private void downloadFile(HttpURLConnection huc) throws IOException {
-        try (InputStream bis = new BufferedInputStream(huc.getInputStream());
-             OutputStream fos = new FileOutputStream(saveAs)) {
+        InputStream bis = null;
+        OutputStream fos = null;
+        try {
+            bis = new BufferedInputStream(huc.getInputStream());
+            fos = new FileOutputStream(saveAs);
             IOUtils.copy(bis, fos);
+        } finally {
+            if (bis != null) {
+                try {
+                    bis.close();
+                } catch (IOException e) {
+                    logger.error("Error closing input stream", e);
+                }
+            }
+            if (fos != null) {
+                try {
+                    fos.close();
+                } catch (IOException e) {
+                    logger.error("Error closing output stream", e);
+                }
+            }
         }
     }
 
